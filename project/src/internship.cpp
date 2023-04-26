@@ -9,49 +9,43 @@
 #include "internship.h"
 
 using json = nlohmann::json;
-using namespace date;
-using namespace boost::gregorian;
 
 namespace internship {
     // remove this function before submitting your solution
-    void example(const std::string& jsonFileName) {
-        std::ifstream f(jsonFileName);
-        json data = json::parse(f);
+    void extractOS(const std::string& jsonFileName, int elementsCount, boost::gregorian::days lastBiggestValue) {
+        if(elementsCount == 0) return;
 
-        std::cout << "Dynatrace Gdansk Summer Internship 2023\n"
-                    << "UTC time now: " << std::chrono::system_clock::now() << "\n\n";
-
-        for(const auto& [id, product] : data.items()) {
-            std::cout << "Product name: " << product["name"] << "\n";
-        }
-    }
-
-    void extractOS(const std::string& jsonFileName, int elementsCount) {
         std::ifstream f(jsonFileName);
         json data = json::parse(f);
         int remainingElements = elementsCount;
-        date releaseDate;
-        date eolDate;
-        days versionLife(0);
-        days lastBestVerison(0);
+        std::string OSname, OSversion;
+        boost::gregorian::date releaseDate;
+        boost::gregorian::date eolDate;
+        boost::gregorian::days versionLife(0);
+        boost::gregorian::days biggestDifference(0);
 
-        for(const auto& [id,product] : data.items() {
+        for(const auto& [id,product] : data.items()) {
             if(product["os"] == true && remainingElements > 0) {
                 for (const auto& [id, version] : product["versions"].items()) {
-                    releaseDate = date(from_string(version["releaseDate"]));
-                    eolDate = date(from_string(version["eol"]));
+                    releaseDate = boost::gregorian::date(boost::gregorian::from_string(version["releaseDate"]));
+                    eolDate = boost::gregorian::date(boost::gregorian::from_string(version["eol"]));
                     versionLife = eolDate - releaseDate;
-                    if(versionLife > lastBestVerison) {
-                        lastBestVerison = versionLife;
+
+                    if(versionLife > biggestDifference && versionLife < lastBiggestValue) {
+                        biggestDifference = versionLife;
+                        OSname = product["name"];
+                        OSversion = version["cycle"];
                     }
                 }
             }
-        })
+        }
+        elementsCount--;
+        std::cout<<OSname<<" "<<OSversion<<" "<<biggestDifference.days()<<std::endl;
+        extractOS(jsonFileName,elementsCount,biggestDifference);
+
     }
     // do not remove this function
     void solution(const std::string& jsonFileName, int elementsCount) {
-        example(jsonFileName); // remove this call before submitting your solution
-
-        // put the call to your solution here
+        extractOS(jsonFileName,elementsCount,boost::gregorian::days(boost::gregorian::pos_infin));
     }
 }
